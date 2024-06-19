@@ -378,7 +378,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     # Acquisition Trigger
 
-    acq_trigger_source = Instrument.setting(
+    nacq_trigger_source = Instrument.setting(
         "ACQ:TRig %s",
         """Set the trigger source (str), one of RedPitayaScpi.TRIGGER_SOURCES.
         PE and NE means respectively Positive and Negative edge
