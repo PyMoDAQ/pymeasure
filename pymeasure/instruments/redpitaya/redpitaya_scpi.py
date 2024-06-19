@@ -27,7 +27,7 @@ import datetime
 import numpy as np
 
 from pymeasure.instruments import Instrument, Channel, SCPIMixin
-from pymeasure.instruments.validators import truncated_range, strict_discrete_set
+from pymeasure.instruments.validators import truncated_range, strict_discrete_set, strict_range
 
 import logging
 log = logging.getLogger(__name__)
@@ -158,6 +158,86 @@ class AnalogInputFastChannel(Channel):
         return max_range * data / (2**16 - 1) - max_range / 2
 
 
+class AnalogOutputFastChannel(Channel):
+    """A fast analog output"""
+
+    shape = Instrument.control(
+        "SOUR{ch}:FUNC?",
+        "SOUR{ch}:FUNC %s",
+        """ A string property that controls the output waveform. Can be set to:
+        SINE, SQUARE, TRIANGLE, SAWU, SAWD, PWM, ARBITRARY, DC, DC_NEG. """,
+        validator=strict_discrete_set,
+        values=["SINE", "SQUARE", "TRIANGLE", "SAWU", "SAWD", "PWM", "ARBITRARY", "DC", "DC_NEG"],
+    )
+
+    frequency = Instrument.control(
+        "SOUR{ch}:FREQ:FIX?",
+        "SOUR{ch}:FREQ:FIX %f",
+        """ A floating point property that controls the frequency of the output
+        waveform in Hz, from 1 uHz to 50 MHz.
+        For the ARBITRARY waveform, this is the frequency of one signal period (a buffer of
+        16384 samples).""",
+        validator=strict_range,
+        values=[1e-6, 50e6],
+    )
+
+    amplitude = Instrument.control(
+        "SOUR{ch}:VOLT?",
+        "SOUR{ch}:VOLT %f",
+        """ A floating point property that controls the voltage amplitude of the
+        output waveform in V, from 0 V to 1 V.""",
+        validator=strict_range,
+        values=[0, 1],
+    )
+
+    offset = Instrument.control(
+        "SOUR{ch}:VOLT:OFFS?",
+        "SOUR{ch}:VOLT:OFFS %f",
+        """ A floating point property that controls the voltage offset of the
+        output waveform in V, from 0 V to 0.995 V, depending on the set
+        voltage amplitude (maximum offset = (Vmax - amplitude) / 2).
+        """,
+        validator=strict_range,
+        values=[-0.995, +0.995],
+    )
+
+    phase = Instrument.control(
+        "SOUR{ch}:PHAS?",
+        "SOUR{ch}:PHAS %f",
+        """ A floating point property that controls the phase of the output
+        waveform in degrees, from -360 degrees to 360 degrees. Not available
+        for arbitrary waveforms.""",
+        validator=strict_range,
+        values=[-360, 360],
+    )
+
+    dutycycle = Instrument.control(
+        "SOUR{ch}:DCYC?",
+        "SOUR{ch}:DCYC %f",
+        """ A floating point property that controls the duty cycle of a PWM
+        waveform function in percent, from 0% to 100%.""",
+        validator=strict_range,
+        values=[0, 100],
+    )
+
+#    burst_mode = Instrument.control(
+#        "SOUR{ch}:BURS:STAT?",
+#        "SOUR{ch}:BURS:STAT %s",
+#        """ A string property that controls the burst mode. Valid values
+#        are: BURST, CONTINUOUS.""",
+#        validator=strict_discrete_set,
+#        values=["BURST", "CONTINUOUS"],
+#    )
+
+    def enable(self):
+        """ Enables the output of the signal. """
+        self.write("OUTPUT{ch}:STATE ON")
+
+    def disable(self):
+        """ Disables the output of the signal. """
+        self.write("OUTPUT{ch}:STATE OFF")
+
+
 class RedPitayaScpi(SCPIMixin, Instrument):
     """This is the class for the Redpitaya reconfigurable board
 
@@ -209,6 +289,8 @@ class RedPitayaScpi(SCPIMixin, Instrument):
                                                      prefix='aoutslow')
 
     analog_in = Instrument.MultiChannelCreator(AnalogInputFastChannel, (1, 2), prefix='ain')
+
+    analog_out = Instrument.MultiChannelCreator(AnalogOutputFastChannel, (1, 2), prefix='aout')
 
     time = Instrument.control("SYST:TIME?",
                               "SYST:TIME %s",
