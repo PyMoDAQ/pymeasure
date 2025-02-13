@@ -161,6 +161,8 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
+    GEN_TRIGGER_SOURCES = ('RP_GEN_TRIG_SRC_INTERNAL', )
+
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
         "SOUR{ch}:FUNC %s",
@@ -185,9 +187,9 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:VOLT?",
         "SOUR{ch}:VOLT %f",
         """ A floating point property that controls the voltage amplitude of the
-        output waveform in V, from 0 V to 1 V.""",
+        output waveform in V, from -1 V to 1 V.""",
         validator=strict_range,
-        values=[0, 1],
+        values=[-1, 1],
     )
 
     offset = Instrument.control(
@@ -229,6 +231,22 @@ class AnalogOutputFastChannel(Channel):
 #        values=["BURST", "CONTINUOUS"],
 #    )
 
+    # Generation Trigger
+
+    gen_trigger_source = Instrument.control(
+        "SOUR{ch}:TRig:SOUR?",
+        "SOUR{ch}:TRig %s",
+        """Set the generator output trigger source (str), one of RedPitayaScpi.TRIGGER_SOURCES.
+        PE and NE means respectively Positive and Negative edge
+        """,
+        validator=strict_discrete_set,
+        values=GEN_TRIGGER_SOURCES,
+    )
+
+    def run(self):
+        """ If trig is internal, will fire it immediately"""
+        self.write("SOUR{ch}:TRig:INT")
+
     def enable(self):
         """ Enables the output of the signal. """
         self.write("OUTPUT{ch}:STATE ON")
@@ -257,6 +275,8 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     TRIGGER_SOURCES = ('DISABLED', 'NOW', 'CH1_PE', 'CH1_NE', 'CH2_PE', 'CH2_NE',
                        'EXT_PE', 'EXT_NE', 'AWG_PE', 'AWG_NE')
+
+
     LV_MAX = 1
     HV_MAX = 20
     CLOCK = 125e6  # Hz
@@ -264,7 +284,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     def __init__(self,
                  adapter=None,
-                 ip_address: str = '169.254.134.87', port: int = 5000, name="Redpitaya SCPI",
+                 ip_address: str = '10.42.0.77', port: int = 5000, name="Redpitaya SCPI",
                  read_termination='\r\n',
                  write_termination='\r\n',
                  **kwargs):
@@ -446,3 +466,15 @@ class RedPitayaScpi(SCPIMixin, Instrument):
         values=[-LV_MAX, LV_MAX],
         dynamic=True,
     )
+
+
+
+if __name__ == '__main__':
+    print("joy")
+    inst = RedPitayaScpi(ip_address='10.42.0.77')
+    inst.aout1.amplitude = 0.5
+    inst.aout1.shape="SINE"
+    inst.aout1.frequency=10e3
+    inst.aout1.enable()
+    print("done")
+    pass
