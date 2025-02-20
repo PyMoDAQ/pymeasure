@@ -161,7 +161,7 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
-    GEN_TRIGGER_SOURCES = ('RP_GEN_TRIG_SRC_INTERNAL', )
+    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
 
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
@@ -187,16 +187,16 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:VOLT?",
         "SOUR{ch}:VOLT %f",
         """ A floating point property that controls the voltage amplitude of the
-        output waveform in V, from -1 V to 1 V.""",
+        output waveform in V, from 0 V to 1 V.""",
         validator=strict_range,
-        values=[-1, 1],
+        values=[0, +1],
     )
 
     offset = Instrument.control(
         "SOUR{ch}:VOLT:OFFS?",
         "SOUR{ch}:VOLT:OFFS %f",
         """ A floating point property that controls the voltage offset of the
-        output waveform in V, from 0 V to 0.995 V, depending on the set
+        output waveform in V, from -1 V to 1 V, depending on the set
         voltage amplitude (maximum offset = (Vmax - amplitude) / 2).
         """,
         validator=strict_range,
@@ -236,7 +236,7 @@ class AnalogOutputFastChannel(Channel):
     gen_trigger_source = Instrument.control(
         "SOUR{ch}:TRig:SOUR?",
         "SOUR{ch}:TRig %s",
-        """Set the generator output trigger source (str), one of RedPitayaScpi.TRIGGER_SOURCES.
+        """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
         PE and NE means respectively Positive and Negative edge
         """,
         validator=strict_discrete_set,
