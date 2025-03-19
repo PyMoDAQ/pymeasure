@@ -161,7 +161,6 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
-    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
 
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
@@ -237,7 +236,7 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:TRig:SOUR?",
         "SOUR{ch}:TRig %s",
         """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
-        PE and NE means respectively Positive and Negative edge
+        PE and NE means respectively Positive and Negative edge. Is important to note that it appears that the trigger can only be done internally.
         """,
         validator=strict_discrete_set,
         values=GEN_TRIGGER_SOURCES,
@@ -247,13 +246,15 @@ class AnalogOutputFastChannel(Channel):
         """ If trig is internal, will fire it immediately"""
         self.write("SOUR{ch}:TRig:INT")
 
-    def enable(self):
-        """ Enables the output of the signal. """
-        self.write("OUTPUT{ch}:STATE ON")
-
-    def disable(self):
-        """ Disables the output of the signal. """
-        self.write("OUTPUT{ch}:STATE OFF")
+    enable = Instrument.control(
+        "OUTPUT{ch}:STATE?",
+        "OUTPUT{ch}:STATE %s",
+        """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
+        PE and NE means respectively Positive and Negative edge
+        """,
+        validator=strict_discrete_set,
+        values=['ON', 'OFF'],
+    )
 
 
 class RedPitayaScpi(SCPIMixin, Instrument):
@@ -343,6 +344,10 @@ class RedPitayaScpi(SCPIMixin, Instrument):
     def analog_reset(self):
         """ Reset the voltage of all analog channels """
         self.write("ANALOG:RST")
+
+    def output_reset(self):
+        """ Reset the Analog Output generation channels """
+        self.write("GEN:RST")
 
     # ACQUISITION SECTION
 
@@ -472,9 +477,11 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 if __name__ == '__main__':
     print("joy")
     inst = RedPitayaScpi(ip_address='10.42.0.77')
-    inst.aout1.amplitude = 0.5
+    inst.aout1.amplitude = 0.05
     inst.aout1.shape="SINE"
     inst.aout1.frequency=10e3
-    inst.aout1.enable()
+    inst.aout1.enable = 'ON'
+    inst.aout1.run()
+
     print("done")
     pass
