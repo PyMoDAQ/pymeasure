@@ -161,6 +161,7 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
+    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
 
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
@@ -243,7 +244,7 @@ class AnalogOutputFastChannel(Channel):
     )
 
     def run(self):
-        """ If trig is internal, will fire it immediately"""
+        """ It will trig immediately internally"""
         self.write("SOUR{ch}:TRig:INT")
 
     enable = Instrument.control(
@@ -481,6 +482,7 @@ if __name__ == '__main__':
     inst.aout1.shape="SINE"
     inst.aout1.frequency=10e3
     inst.aout1.enable = 'ON'
+    inst.aout1.gen_trigger_source = "INT"
     inst.aout1.run()
 
     print("done")
