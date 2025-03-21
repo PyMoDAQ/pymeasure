@@ -161,17 +161,17 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
-    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
-
+    SHAPES = ("SINE", "SQUARE", "TRIANGLE", "SAWU", "SAWD", "PWM", "ARBITRARY", "DC", "DC_NEG")
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
         "SOUR{ch}:FUNC %s",
         """ A string property that controls the output waveform. Can be set to:
         SINE, SQUARE, TRIANGLE, SAWU, SAWD, PWM, ARBITRARY, DC, DC_NEG. """,
         validator=strict_discrete_set,
-        values=["SINE", "SQUARE", "TRIANGLE", "SAWU", "SAWD", "PWM", "ARBITRARY", "DC", "DC_NEG"],
+        values=SHAPES,
     )
 
+    FREQUENCIES = [1e-6, 50e6]
     frequency = Instrument.control(
         "SOUR{ch}:FREQ:FIX?",
         "SOUR{ch}:FREQ:FIX %f",
@@ -180,18 +180,20 @@ class AnalogOutputFastChannel(Channel):
         For the ARBITRARY waveform, this is the frequency of one signal period (a buffer of
         16384 samples).""",
         validator=strict_range,
-        values=[1e-6, 50e6],
+        values= FREQUENCIES,
     )
 
+    AMPLITUDES = [0, +1]
     amplitude = Instrument.control(
         "SOUR{ch}:VOLT?",
         "SOUR{ch}:VOLT %f",
         """ A floating point property that controls the voltage amplitude of the
         output waveform in V, from 0 V to 1 V.""",
         validator=strict_range,
-        values=[0, +1],
+        values= AMPLITUDES,
     )
 
+    OFFSETS = [-0.995, +0.995]
     offset = Instrument.control(
         "SOUR{ch}:VOLT:OFFS?",
         "SOUR{ch}:VOLT:OFFS %f",
@@ -200,9 +202,10 @@ class AnalogOutputFastChannel(Channel):
         voltage amplitude (maximum offset = (Vmax - amplitude) / 2).
         """,
         validator=strict_range,
-        values=[-0.995, +0.995],
+        values= OFFSETS,
     )
 
+    PHASES = (-360, 360)
     phase = Instrument.control(
         "SOUR{ch}:PHAS?",
         "SOUR{ch}:PHAS %f",
@@ -210,16 +213,17 @@ class AnalogOutputFastChannel(Channel):
         waveform in degrees, from -360 degrees to 360 degrees. Not available
         for arbitrary waveforms.""",
         validator=strict_range,
-        values=[-360, 360],
+        values= PHASES,
     )
 
+    CYCLES = (0, 1)
     dutycycle = Instrument.control(
         "SOUR{ch}:DCYC?",
         "SOUR{ch}:DCYC %f",
         """ A floating point property that controls the duty cycle of a PWM
         waveform function in percent, from 0% to 100%.""",
         validator=strict_range,
-        values=[0, 100],
+        values= CYCLES,
     )
 
 #    burst_mode = Instrument.control(
@@ -233,6 +237,7 @@ class AnalogOutputFastChannel(Channel):
 
     # Generation Trigger
 
+    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
     gen_trigger_source = Instrument.control(
         "SOUR{ch}:TRig:SOUR?",
         "SOUR{ch}:TRig %s",
@@ -246,7 +251,7 @@ class AnalogOutputFastChannel(Channel):
     def run(self):
         """ It will trig immediately internally"""
         self.write("SOUR{ch}:TRig:INT")
-
+    STATE = ('ON', 'OFF')
     enable = Instrument.control(
         "OUTPUT{ch}:STATE?",
         "OUTPUT{ch}:STATE %s",
@@ -254,7 +259,7 @@ class AnalogOutputFastChannel(Channel):
         PE and NE means respectively Positive and Negative edge
         """,
         validator=strict_discrete_set,
-        values=['ON', 'OFF'],
+        values= STATE,
     )
 
 
