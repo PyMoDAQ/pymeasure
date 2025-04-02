@@ -240,9 +240,10 @@ class AnalogOutputFastChannel(Channel):
     GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
     gen_trigger_source = Instrument.control(
         "SOUR{ch}:TRig:SOUR?",
-        "SOUR{ch}:TRig %s",
+        "SOUR{ch}:TRig:SOUR %s",
         """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
-        PE and NE means respectively Positive and Negative edge. Is important to note that it appears that the trigger can only be done internally.
+        PE and NE means respectively Positive and Negative edge. 
+        Is important to note that it appears that the trigger can only be done internally.
         """,
         validator=strict_discrete_set,
         values=GEN_TRIGGER_SOURCES,
@@ -251,6 +252,7 @@ class AnalogOutputFastChannel(Channel):
     def run(self):
         """ It will trig immediately internally"""
         self.write("SOUR{ch}:TRig:INT")
+
     STATE = ('ON', 'OFF')
     enable = Instrument.control(
         "OUTPUT{ch}:STATE?",
@@ -260,6 +262,71 @@ class AnalogOutputFastChannel(Channel):
         """,
         validator=strict_discrete_set,
         values= STATE,
+    )
+
+
+    # Sweep mode
+
+    #START_FREQUENCY_SWEEP= [1e-6, 50e6]
+    sweep_start_frequency = Instrument.control(
+        "SOUR{ch}:SWeep:FREQ:START?",
+        "SOUR{ch}:SWeep:FREQ:START %f",
+        """ Set and get the start frequency for the sweep , from 1 uHz to 50 MHz.""",
+        validator=strict_range,
+        values=FREQUENCIES,
+    )
+
+    sweep_stop_frequency = Instrument.control(
+        "SOUR{ch}:SWeep:FREQ:STOP?",
+        "SOUR{ch}:SWeep:FREQ:STOP %f",
+        """ Set and get the stop frequency for the sweep , from 1 uHz to 50 MHz.""",
+        validator=strict_range,
+        values=FREQUENCIES,
+    )
+
+    SWEEP_MODES = ('LINEAR', 'LOG')
+    sweep_mode = Instrument.control(
+        "SOUR{ch}:SWeep:MODE?",
+        "SOUR{ch}:SWeep:MODE %s",
+        """ A string property that controls the mode of the sweep. Can be set to:
+        LINEAR or LOG""",
+        validator=strict_discrete_set,
+        values=SWEEP_MODES,
+    )
+
+    SWEEP_TIME = [1, 10e6]
+    sweep_time = Instrument.control(
+        "SOUR{ch}:SWeep:TIME?",
+        "SOUR{ch}:SWeep:TIME %d",
+        """ Set and get the generation time. How long it takes to transition from the
+        starting frequency to the final frequency, measured in microseconds.""",
+        validator=strict_range,
+        values=SWEEP_TIME,
+    )
+
+    pause = Instrument.setting(
+        "SOUR:SWeep:PAUSE, %s",
+        """ Stops the frequency change, but does not reset the state""",
+        validator=strict_discrete_set,
+        values=STATE,
+    )
+
+    sweep_state = Instrument.control(
+        "SOUR{ch}:SWeep:STATE?",
+        "SOUR{ch}:SWeep:STATE %s",
+        """Enables or disables generation of the sweep on the specified channel, for this to work we have to enable the output channel too""",
+        validator=strict_discrete_set,
+        values=STATE,
+    )
+
+    DIRECTION = ('NORMAL', 'UP_DOWN')
+    sweep_direction = Instrument.control(
+        "SOUR{ch}:SWeep:DIR?",
+        "SOUR{ch}:SWeep:DIR %s",
+        """A string property that controls the direction of the sweep. Can be set to:
+        NORMAl (up) or UP_DOWN """,
+        validator=strict_discrete_set,
+        values=STATE,
     )
 
 
@@ -291,7 +358,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     def __init__(self,
                  adapter=None,
-                 ip_address: str = '10.42.0.77', port: int = 5000, name="Redpitaya SCPI",
+                 ip_address: str = '10.42.0.78', port: int = 5000, name="Redpitaya SCPI",
                  read_termination='\r\n',
                  write_termination='\r\n',
                  **kwargs):
@@ -482,7 +549,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
 if __name__ == '__main__':
     print("joy")
-    inst = RedPitayaScpi(ip_address='10.42.0.77')
+    inst = RedPitayaScpi(ip_address='10.42.0.78')
     inst.aout1.amplitude = 0.05
     inst.aout1.shape="SINE"
     inst.aout1.frequency=10e3
