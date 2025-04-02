@@ -177,8 +177,8 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:FREQ:FIX %f",
         """ A floating point property that controls the frequency of the output
         waveform in Hz, from 1 uHz to 50 MHz.
-        For the ARBITRARY waveform, this is the frequency of one signal period (a buffer of
-        16384 samples).""",
+        For the ARBITRARY waveform, this is the frequency of one signal period 
+        (a buffer of 16384 samples).""",
         validator=strict_range,
         values= FREQUENCIES,
     )
@@ -210,8 +210,8 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:PHAS?",
         "SOUR{ch}:PHAS %f",
         """ A floating point property that controls the phase of the output
-        waveform in degrees, from -360 degrees to 360 degrees. Not available
-        for arbitrary waveforms.""",
+        waveform in degrees, from -360 degrees to 360 degrees. 
+        Not available for arbitrary waveforms.""",
         validator=strict_range,
         values= PHASES,
     )
@@ -221,7 +221,7 @@ class AnalogOutputFastChannel(Channel):
         "SOUR{ch}:DCYC?",
         "SOUR{ch}:DCYC %f",
         """ A floating point property that controls the duty cycle of a PWM
-        waveform function in percent, from 0% to 100%.""",
+        waveform function in percent, from 0% to 100% where 1 is 100%.""",
         validator=strict_range,
         values= CYCLES,
     )
@@ -233,7 +233,7 @@ class AnalogOutputFastChannel(Channel):
     gen_trigger_source = Instrument.control(
         "SOUR{ch}:TRig:SOUR?",
         "SOUR{ch}:TRig:SOUR %s",
-        """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
+        """Set and get the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
         PE and NE means respectively Positive and Negative edge. 
         Is important to note that it appears that the trigger can only be done internally.
         """,
@@ -242,18 +242,17 @@ class AnalogOutputFastChannel(Channel):
     )
 
     def run(self):
-        """ It will trig immediately internally"""
+        """ It will trig the generation of the specified fast analog output immediately internally"""
         self.write("SOUR{ch}:TRig:INT")
 
-    STATE = ('ON', 'OFF')
     enable = Instrument.control(
         "OUTPUT{ch}:STATE?",
-        "OUTPUT{ch}:STATE %s",
-        """Set the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
-        PE and NE means respectively Positive and Negative edge
-        """,
+        "OUTPUT{ch}:STATE %d",
+        """Enable/disable supplying voltage to the specified fast analog output. 
+        When enabled, the signal does not start generating, until triggered""",
         validator=strict_discrete_set,
-        values= STATE,
+        map_values=True,
+        values={True: 1, False: 0},
     )
 
 
@@ -273,7 +272,8 @@ class AnalogOutputFastChannel(Channel):
     sweep_start_frequency = Instrument.control(
         "SOUR{ch}:SWeep:FREQ:START?",
         "SOUR{ch}:SWeep:FREQ:START %f",
-        """ Set and get the start frequency for the sweep , from 1 uHz to 50 MHz.""",
+        """ A floating point property that controls the start frequency for the sweep,
+         from 1 uHz to 50 MHz.""",
         validator=strict_range,
         values=FREQUENCIES,
     )
@@ -281,7 +281,8 @@ class AnalogOutputFastChannel(Channel):
     sweep_stop_frequency = Instrument.control(
         "SOUR{ch}:SWeep:FREQ:STOP?",
         "SOUR{ch}:SWeep:FREQ:STOP %f",
-        """ Set and get the stop frequency for the sweep , from 1 uHz to 50 MHz.""",
+        """ A floating point property that controls the stop frequency for the sweep,
+         from 1 uHz to 50 MHz.""",
         validator=strict_range,
         values=FREQUENCIES,
     )
@@ -290,13 +291,15 @@ class AnalogOutputFastChannel(Channel):
     sweep_time = Instrument.control(
         "SOUR{ch}:SWeep:TIME?",
         "SOUR{ch}:SWeep:TIME %d",
-        """ Set and get the generation time. How long it takes to transition from the
-        starting frequency to the final frequency, measured in microseconds.""",
+        """ An integer point property that controls the generation time. 
+        How long it takes to transition from the starting frequency to the final frequency, 
+        from 1 us to 10 s.""",
         validator=strict_range,
         values=SWEEP_TIME,
     )
 
-    pause = Instrument.setting(
+    STATE = ('ON', 'OFF')
+    sweep_pause = Instrument.setting(
         "SOUR:SWeep:PAUSE, %s",
         """ Stops the frequency change, but does not reset the state""",
         validator=strict_discrete_set,
@@ -306,7 +309,7 @@ class AnalogOutputFastChannel(Channel):
     sweep_state = Instrument.control(
         "SOUR{ch}:SWeep:STATE?",
         "SOUR{ch}:SWeep:STATE %s",
-        """Enables or disables generation of the sweep on the specified channel, 
+        """Enables/disables generation of the sweep on the specified channel, 
         for this to work we have to enable the output channel too""",
         validator=strict_discrete_set,
         values=STATE,
@@ -319,7 +322,7 @@ class AnalogOutputFastChannel(Channel):
         """A string property that controls the direction of the sweep. Can be set to:
         NORMAl (up) or UP_DOWN """,
         validator=strict_discrete_set,
-        values=STATE,
+        values=DIRECTION,
     )
 
 
@@ -340,8 +343,9 @@ class AnalogOutputFastChannel(Channel):
     burst_initial_voltage = Instrument.control(
         "SOUR{ch}:BURS:INITValue?",
         "SOUR{ch}:BURS:INITValue %f",
-        """ Set and get the initial voltage value, from 0 V to 1V,that appears on 
-        the fast analog output once it is enabled but before the signal is generated.""",
+        """ A floating point property that controls the initial voltage value, 
+        from 0 V to 1V, that appears on the fast analog output once it is enabled 
+        but before the signal is generated.""",
         validator=strict_range,
         values=AMPLITUDES,
     )
@@ -349,7 +353,8 @@ class AnalogOutputFastChannel(Channel):
     burst_last_voltage = Instrument.control(
         "SOUR{ch}:BURS:LASTValue?",
         "SOUR{ch}:BURS:LASTValue %f",
-        """ Set and get the end value of the generated burst signal, from 0 V to 1V.
+        """ A floating point property that controls the end value of the 
+        generated burst signal, from 0 V to 1V.
         The output will stay on this value until a new signal is generated.""",
         validator=strict_range,
         values=AMPLITUDES,
@@ -359,7 +364,7 @@ class AnalogOutputFastChannel(Channel):
     burst_num_cycles= Instrument.control(
         "SOUR{ch}:BURS:NCYC?",
         "SOUR{ch}:BURS:NCYC %d",
-        """ Set and get the number of cycles in one burst (N),
+        """ An integer point property that controls the number of cycles in one burst (N),
         the number of generated waveforms in a burst.""",
         validator=strict_range,
         values=NUM,
@@ -368,7 +373,7 @@ class AnalogOutputFastChannel(Channel):
     burst_num_repetitions = Instrument.control(
         "SOUR{ch}:BURS:NOR?",
         "SOUR{ch}:BURS:NOR %d",
-        """ Set and get he number of repeated bursts (R),
+        """ An integer point property that controls the number of repeated bursts (R),
         (65536 == INF repetitions).""",
         validator=strict_range,
         values=NUM,
@@ -378,16 +383,13 @@ class AnalogOutputFastChannel(Channel):
     burst_period = Instrument.control(
         "SOUR{ch}:BURS:INT:PER?",
         "SOUR{ch}:BURS:INT:PER %d",
-        """ Set and get the duration of a single burst in microseconds (P). 
+        """ An integer point property that controls the duration of a single burst (P). 
         This specifies the time between the start of one and the start of the next burst. 
         The bursts will always have at least 1 microsecond between them: 
-        If the period is shorter than the burst, the software will default to 1 microsecond
-        between bursts.""",
+        If the period is shorter than the burst, the software will default to 1 us between bursts.""",
         validator=strict_range,
         values=PERIOD,
     )
-
-    #        """ A string property that controls the burst mode. Valid values
 
 
 class RedPitayaScpi(SCPIMixin, Instrument):
