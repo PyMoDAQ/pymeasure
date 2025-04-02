@@ -171,7 +171,7 @@ class AnalogOutputFastChannel(Channel):
         values=SHAPES,
     )
 
-    FREQUENCIES = [1e-6, 50e6]
+    FREQUENCIES = [1e-6, 50e6] #in Hz
     frequency = Instrument.control(
         "SOUR{ch}:FREQ:FIX?",
         "SOUR{ch}:FREQ:FIX %f",
@@ -183,7 +183,7 @@ class AnalogOutputFastChannel(Channel):
         values= FREQUENCIES,
     )
 
-    AMPLITUDES = [0, +1]
+    AMPLITUDES = [0, +1] #in V
     amplitude = Instrument.control(
         "SOUR{ch}:VOLT?",
         "SOUR{ch}:VOLT %f",
@@ -193,7 +193,7 @@ class AnalogOutputFastChannel(Channel):
         values= AMPLITUDES,
     )
 
-    OFFSETS = [-0.995, +0.995]
+    OFFSETS = [-0.995, +0.995] #in V
     offset = Instrument.control(
         "SOUR{ch}:VOLT:OFFS?",
         "SOUR{ch}:VOLT:OFFS %f",
@@ -205,7 +205,7 @@ class AnalogOutputFastChannel(Channel):
         values= OFFSETS,
     )
 
-    PHASES = (-360, 360)
+    PHASES = (-360, 360) #in degrees
     phase = Instrument.control(
         "SOUR{ch}:PHAS?",
         "SOUR{ch}:PHAS %f",
@@ -226,14 +226,6 @@ class AnalogOutputFastChannel(Channel):
         values= CYCLES,
     )
 
-#    burst_mode = Instrument.control(
-#        "SOUR{ch}:BURS:STAT?",
-#        "SOUR{ch}:BURS:STAT %s",
-#        """ A string property that controls the burst mode. Valid values
-#        are: BURST, CONTINUOUS.""",
-#        validator=strict_discrete_set,
-#        values=["BURST", "CONTINUOUS"],
-#    )
 
     # Generation Trigger
 
@@ -267,6 +259,16 @@ class AnalogOutputFastChannel(Channel):
 
     # Sweep mode
 
+    SWEEP_MODES = ('LINEAR', 'LOG')
+    sweep_mode = Instrument.control(
+        "SOUR{ch}:SWeep:MODE?",
+        "SOUR{ch}:SWeep:MODE %s",
+        """ A string property that controls the mode of the sweep. Can be set to:
+        LINEAR or LOG""",
+        validator=strict_discrete_set,
+        values=SWEEP_MODES,
+    )
+
     #START_FREQUENCY_SWEEP= [1e-6, 50e6]
     sweep_start_frequency = Instrument.control(
         "SOUR{ch}:SWeep:FREQ:START?",
@@ -284,17 +286,7 @@ class AnalogOutputFastChannel(Channel):
         values=FREQUENCIES,
     )
 
-    SWEEP_MODES = ('LINEAR', 'LOG')
-    sweep_mode = Instrument.control(
-        "SOUR{ch}:SWeep:MODE?",
-        "SOUR{ch}:SWeep:MODE %s",
-        """ A string property that controls the mode of the sweep. Can be set to:
-        LINEAR or LOG""",
-        validator=strict_discrete_set,
-        values=SWEEP_MODES,
-    )
-
-    SWEEP_TIME = [1, 10e6]
+    SWEEP_TIME = [1, 10e6] #in microseconds
     sweep_time = Instrument.control(
         "SOUR{ch}:SWeep:TIME?",
         "SOUR{ch}:SWeep:TIME %d",
@@ -314,7 +306,8 @@ class AnalogOutputFastChannel(Channel):
     sweep_state = Instrument.control(
         "SOUR{ch}:SWeep:STATE?",
         "SOUR{ch}:SWeep:STATE %s",
-        """Enables or disables generation of the sweep on the specified channel, for this to work we have to enable the output channel too""",
+        """Enables or disables generation of the sweep on the specified channel, 
+        for this to work we have to enable the output channel too""",
         validator=strict_discrete_set,
         values=STATE,
     )
@@ -328,6 +321,73 @@ class AnalogOutputFastChannel(Channel):
         validator=strict_discrete_set,
         values=STATE,
     )
+
+
+    # Burst mode
+
+    BURST_MODES = ('CONTINUOUS', 'BURST')
+    burst_mode = Instrument.control(
+        "SOUR{ch}:BURS:STAT?",
+        "SOUR{ch}:BURS:STAT %s",
+        """ A string property that controls the generation mode. 
+        Can be set to: CONTINUOUS or BURST
+        Red Pitaya will generate R bursts with N signal periods.
+        P is the time between the start of one and the start of the next burst.""",
+        validator=strict_discrete_set,
+        values=BURST_MODES,
+    )
+
+    burst_initial_voltage = Instrument.control(
+        "SOUR{ch}:BURS:INITValue?",
+        "SOUR{ch}:BURS:INITValue %f",
+        """ Set and get the initial voltage value, from 0 V to 1V,that appears on 
+        the fast analog output once it is enabled but before the signal is generated.""",
+        validator=strict_range,
+        values=AMPLITUDES,
+    )
+
+    burst_last_voltage = Instrument.control(
+        "SOUR{ch}:BURS:LASTValue?",
+        "SOUR{ch}:BURS:LASTValue %f",
+        """ Set and get the end value of the generated burst signal, from 0 V to 1V.
+        The output will stay on this value until a new signal is generated.""",
+        validator=strict_range,
+        values=AMPLITUDES,
+    )
+
+    NUM = [1, 65536]
+    burst_num_cycles= Instrument.control(
+        "SOUR{ch}:BURS:NCYC?",
+        "SOUR{ch}:BURS:NCYC %d",
+        """ Set and get the number of cycles in one burst (N),
+        the number of generated waveforms in a burst.""",
+        validator=strict_range,
+        values=NUM,
+    )
+
+    burst_num_repetitions = Instrument.control(
+        "SOUR{ch}:BURS:NOR?",
+        "SOUR{ch}:BURS:NOR %d",
+        """ Set and get he number of repeated bursts (R),
+        (65536 == INF repetitions).""",
+        validator=strict_range,
+        values=NUM,
+    )
+
+    PERIOD = [1, 5e8] #in microseconds
+    burst_period = Instrument.control(
+        "SOUR{ch}:BURS:INT:PER?",
+        "SOUR{ch}:BURS:INT:PER %d",
+        """ Set and get the duration of a single burst in microseconds (P). 
+        This specifies the time between the start of one and the start of the next burst. 
+        The bursts will always have at least 1 microsecond between them: 
+        If the period is shorter than the burst, the software will default to 1 microsecond
+        between bursts.""",
+        validator=strict_range,
+        values=PERIOD,
+    )
+
+    #        """ A string property that controls the burst mode. Valid values
 
 
 class RedPitayaScpi(SCPIMixin, Instrument):
@@ -549,7 +609,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
 if __name__ == '__main__':
     print("joy")
-    inst = RedPitayaScpi(ip_address='10.42.0.78')
+    inst = RedPitayaScpi(ip_address='10.42.0.77')
     inst.aout1.amplitude = 0.05
     inst.aout1.shape="SINE"
     inst.aout1.frequency=10e3
