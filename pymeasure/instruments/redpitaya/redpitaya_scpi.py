@@ -287,7 +287,7 @@ class AnalogOutputFastChannel(Channel):
         values=FREQUENCIES,
     )
 
-    SWEEP_TIME = [1, 10e6] #in microseconds
+    TIME = [1, 10e6] #in microseconds
     sweep_time = Instrument.control(
         "SOUR{ch}:SWeep:TIME?",
         "SOUR{ch}:SWeep:TIME %d",
@@ -295,7 +295,7 @@ class AnalogOutputFastChannel(Channel):
         How long it takes to transition from the starting frequency to the final frequency, 
         from 1 us to 10 s.""",
         validator=strict_range,
-        values=SWEEP_TIME,
+        values=TIME,
     )
 
     STATE = ('ON', 'OFF')
@@ -615,7 +615,7 @@ if __name__ == '__main__':
     inst.aout1.amplitude = 0.05
     inst.aout1.shape="SINE"
     inst.aout1.frequency=10e3
-    inst.aout1.enable = true
+    inst.aout1.enable = True
     inst.aout1.gen_trigger_source = "INT"
     inst.aout1.run()
 
