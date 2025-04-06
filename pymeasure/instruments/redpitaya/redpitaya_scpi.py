@@ -298,12 +298,12 @@ class AnalogOutputFastChannel(Channel):
         values=TIME,
     )
 
-    STATE = ('ON', 'OFF')
     sweep_pause = Instrument.setting(
         "SOUR:SWeep:PAUSE, %s",
         """ Stops the frequency change, but does not reset the state""",
         validator=strict_discrete_set,
-        values=STATE,
+        map_values=True,
+        values={True: 'ON', False: 'OFF'}
     )
 
     sweep_state = Instrument.control(
@@ -312,7 +312,8 @@ class AnalogOutputFastChannel(Channel):
         """Enables/disables generation of the sweep on the specified channel, 
         for this to work we have to enable the output channel too""",
         validator=strict_discrete_set,
-        values=STATE,
+        map_values=True,
+        values={True: 'ON', False: 'OFF'}
     )
 
     DIRECTION = ('NORMAL', 'UP_DOWN')
@@ -453,9 +454,9 @@ class RedPitayaScpi(SCPIMixin, Instrument):
                               """Control the time on board
                               time should be given as a datetime.time object""",
                               get_process=lambda _tstr:
-                              datetime.time(*[int(split) for split in _tstr]),
+                              datetime.time(*[int(split) for split in _tstr.split(':')]),
                               set_process=lambda _time:
-                              _time.strftime('%H,%M,%S'),
+                              _time.strftime('"%H:%M:%S"'),
                               )
 
     date = Instrument.control("SYST:DATE?",
@@ -463,8 +464,8 @@ class RedPitayaScpi(SCPIMixin, Instrument):
                               """Control the date on board
                               date should be given as a datetime.date object""",
                               get_process=lambda dstr:
-                              datetime.date(*[int(split) for split in dstr]),
-                              set_process=lambda date: date.strftime('%Y,%m,%d'),
+                              datetime.date(*[int(split) for split in dstr.split('-')]),
+                              set_process=lambda date: date.strftime('"%Y-%m-%d"'),
                               )
 
     board_name = Instrument.measurement("SYST:BRD:Name?",
