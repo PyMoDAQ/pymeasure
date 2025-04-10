@@ -389,3 +389,4 @@ def test_digital_reset():
             [(b'DIG:RST', None)],
     ) as inst:
         assert inst.digital_reset() is None
+

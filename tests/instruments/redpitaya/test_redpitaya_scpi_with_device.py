@@ -81,7 +81,6 @@ class TestRedpitaya:
         inst.average_skipped_samples = True
         assert inst.average_skipped_samples
 
-        #assert inst.acq_units == 'VOLTS'  --> Pour une raison ou une autre ca cree une erreur par rapport au buffer so on peut juste l'enlever
         inst.acq_units = 'RAW'
         assert inst.acq_units == 'RAW'
 
@@ -91,7 +90,6 @@ class TestRedpitaya:
             inst.acq_trigger_source = trigger_source
             if trigger_source == "NOW":
                 assert inst.acq_trigger_status
-             #le test forcement marche so je le laisse comme ca car ca marche
 
         assert inst.acq_buffer_filled is False
 
@@ -155,9 +153,6 @@ class TestRedpitaya:
 
         inst.aout1.sweep_time = 5e5
         assert inst.aout1.sweep_time == 5e5
-
-        #inst.aout1.sweep_pause = True
-        #assert inst.aout1.sweep_pause
 
         inst.aout1.sweep_state = False
         assert inst.aout1.sweep_state is False

@@ -298,14 +298,6 @@ class AnalogOutputFastChannel(Channel):
         values=TIME,
     )
 
-    sweep_pause = Instrument.setting(
-        "SOUR:SWeep:PAUSE, %s",
-        """ Stops the frequency change, but does not reset the state""",
-        validator=strict_discrete_set,
-        map_values=True,
-        values={True: 'ON', False: 'OFF'}
-    )
-
     sweep_state = Instrument.control(
         "SOUR{ch}:SWeep:STATE?",
         "SOUR{ch}:SWeep:STATE %s",
@@ -328,6 +320,7 @@ class AnalogOutputFastChannel(Channel):
 
 
     # Burst mode
+    #Not working at the moment
 
     BURST_MODES = ('CONTINUOUS', 'BURST')
     burst_mode = Instrument.control(
