@@ -287,7 +287,7 @@ class AnalogOutputFastChannel(Channel):
         values=FREQUENCIES,
     )
 
-    TIME = [1, 10e6] #in microseconds
+    TIME = [1, 60e6] #in microseconds
     sweep_time = Instrument.control(
         "SOUR{ch}:SWeep:TIME?",
         "SOUR{ch}:SWeep:TIME %d",
