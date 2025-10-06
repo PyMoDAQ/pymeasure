@@ -119,6 +119,10 @@ class AnalogInputFastChannel(Channel):
         values=['LV', 'HV'],
     )
 
+    def get_data_from(self, start: int, npts: int) -> np.ndarray:
+        self.write(f"ACQ:SOUR{'{ch}'}:DATA:STArt:N? {start:.0f}, {npts:.0f}")
+        return self._read_from_ascii()
+
     def get_data(self, npts: int = None, format='ASCII') -> np.ndarray:
         """ Read data from the buffer
 
@@ -551,6 +555,12 @@ class RedPitayaScpi(SCPIMixin, Instrument):
     acq_trigger_position = Instrument.measurement(
         "ACQ:TPOS?",
         """Get the position within the buffer where the trigger event happened""",
+        cast=int,
+    )
+
+    acq_last_position = Instrument.measurement(
+        "ACQ:WPOS?",
+        """Get the current position of the write pointer, i.e the index of the most recent sample in the buffer""",
         cast=int,
     )
 
