@@ -119,6 +119,10 @@ class AnalogInputFastChannel(Channel):
         values=['LV', 'HV'],
     )
 
+    def get_data_from(self, start: int, npts: int) -> np.ndarray:
+        self.write(f"ACQ:SOUR{'{ch}'}:DATA:STArt:N? {start:.0f}, {npts:.0f}")
+        return self._read_from_ascii()
+
     def get_data(self, npts: int = None, format='ASCII') -> np.ndarray:
         """ Read data from the buffer
 
@@ -161,81 +165,229 @@ class AnalogInputFastChannel(Channel):
 class AnalogOutputFastChannel(Channel):
     """A fast analog output"""
 
+    SHAPES = ("SINE", "SQUARE", "TRIANGLE", "SAWU", "SAWD", "PWM", "ARBITRARY", "DC", "DC_NEG")
     shape = Instrument.control(
         "SOUR{ch}:FUNC?",
         "SOUR{ch}:FUNC %s",
         """ A string property that controls the output waveform. Can be set to:
         SINE, SQUARE, TRIANGLE, SAWU, SAWD, PWM, ARBITRARY, DC, DC_NEG. """,
         validator=strict_discrete_set,
-        values=["SINE", "SQUARE", "TRIANGLE", "SAWU", "SAWD", "PWM", "ARBITRARY", "DC", "DC_NEG"],
+        values=SHAPES,
     )
 
+    FREQUENCIES = [1e-6, 50e6] #in Hz
     frequency = Instrument.control(
         "SOUR{ch}:FREQ:FIX?",
         "SOUR{ch}:FREQ:FIX %f",
         """ A floating point property that controls the frequency of the output
         waveform in Hz, from 1 uHz to 50 MHz.
-        For the ARBITRARY waveform, this is the frequency of one signal period (a buffer of
-        16384 samples).""",
+        For the ARBITRARY waveform, this is the frequency of one signal period 
+        (a buffer of 16384 samples).""",
         validator=strict_range,
-        values=[1e-6, 50e6],
+        values= FREQUENCIES,
     )
 
+    AMPLITUDES = [0, +1] #in V
     amplitude = Instrument.control(
         "SOUR{ch}:VOLT?",
         "SOUR{ch}:VOLT %f",
         """ A floating point property that controls the voltage amplitude of the
         output waveform in V, from 0 V to 1 V.""",
         validator=strict_range,
-        values=[0, 1],
+        values= AMPLITUDES,
     )
 
+    OFFSETS = [-0.995, +0.995] #in V
     offset = Instrument.control(
         "SOUR{ch}:VOLT:OFFS?",
         "SOUR{ch}:VOLT:OFFS %f",
         """ A floating point property that controls the voltage offset of the
-        output waveform in V, from 0 V to 0.995 V, depending on the set
+        output waveform in V, from -1 V to 1 V, depending on the set
         voltage amplitude (maximum offset = (Vmax - amplitude) / 2).
         """,
         validator=strict_range,
-        values=[-0.995, +0.995],
+        values= OFFSETS,
     )
 
+    PHASES = (-360, 360) #in degrees
     phase = Instrument.control(
         "SOUR{ch}:PHAS?",
         "SOUR{ch}:PHAS %f",
         """ A floating point property that controls the phase of the output
-        waveform in degrees, from -360 degrees to 360 degrees. Not available
-        for arbitrary waveforms.""",
+        waveform in degrees, from -360 degrees to 360 degrees. 
+        Not available for arbitrary waveforms.""",
         validator=strict_range,
-        values=[-360, 360],
+        values= PHASES,
     )
 
+    CYCLES = (0, 1)
     dutycycle = Instrument.control(
         "SOUR{ch}:DCYC?",
         "SOUR{ch}:DCYC %f",
         """ A floating point property that controls the duty cycle of a PWM
-        waveform function in percent, from 0% to 100%.""",
+        waveform function in percent, from 0% to 100% where 1 is 100%.""",
         validator=strict_range,
-        values=[0, 100],
+        values= CYCLES,
     )
 
-#    burst_mode = Instrument.control(
-#        "SOUR{ch}:BURS:STAT?",
-#        "SOUR{ch}:BURS:STAT %s",
-#        """ A string property that controls the burst mode. Valid values
-#        are: BURST, CONTINUOUS.""",
-#        validator=strict_discrete_set,
-#        values=["BURST", "CONTINUOUS"],
-#    )
 
-    def enable(self):
-        """ Enables the output of the signal. """
-        self.write("OUTPUT{ch}:STATE ON")
+    # Generation Trigger
 
-    def disable(self):
-        """ Disables the output of the signal. """
-        self.write("OUTPUT{ch}:STATE OFF")
+    GEN_TRIGGER_SOURCES = ("EXT_PE", "EXT_NE", "INT", "GATED")
+    gen_trigger_source = Instrument.control(
+        "SOUR{ch}:TRig:SOUR?",
+        "SOUR{ch}:TRig:SOUR %s",
+        """Set and get the generator output trigger source (str), one of RedPitayaScpi.GEN_TRIGGER_SOURCES.
+        PE and NE means respectively Positive and Negative edge. 
+        Is important to note that it appears that the trigger can only be done internally.
+        """,
+        validator=strict_discrete_set,
+        values=GEN_TRIGGER_SOURCES,
+    )
+
+    def run(self):
+        """ It will trig the generation of the specified fast analog output immediately internally"""
+        self.write("SOUR{ch}:TRig:INT")
+
+    enable = Instrument.control(
+        "OUTPUT{ch}:STATE?",
+        "OUTPUT{ch}:STATE %d",
+        """Enable/disable supplying voltage to the specified fast analog output. 
+        When enabled, the signal does not start generating, until triggered""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 1, False: 0},
+    )
+
+
+    # Sweep mode
+
+    SWEEP_MODES = ('LINEAR', 'LOG')
+    sweep_mode = Instrument.control(
+        "SOUR{ch}:SWeep:MODE?",
+        "SOUR{ch}:SWeep:MODE %s",
+        """ A string property that controls the mode of the sweep. Can be set to:
+        LINEAR or LOG""",
+        validator=strict_discrete_set,
+        values=SWEEP_MODES,
+    )
+
+    #START_FREQUENCY_SWEEP= [1e-6, 50e6]
+    sweep_start_frequency = Instrument.control(
+        "SOUR{ch}:SWeep:FREQ:START?",
+        "SOUR{ch}:SWeep:FREQ:START %f",
+        """ A floating point property that controls the start frequency for the sweep,
+         from 1 uHz to 50 MHz.""",
+        validator=strict_range,
+        values=FREQUENCIES,
+    )
+
+    sweep_stop_frequency = Instrument.control(
+        "SOUR{ch}:SWeep:FREQ:STOP?",
+        "SOUR{ch}:SWeep:FREQ:STOP %f",
+        """ A floating point property that controls the stop frequency for the sweep,
+         from 1 uHz to 50 MHz.""",
+        validator=strict_range,
+        values=FREQUENCIES,
+    )
+
+    TIME = [1, 60e6] #in microseconds
+    sweep_time = Instrument.control(
+        "SOUR{ch}:SWeep:TIME?",
+        "SOUR{ch}:SWeep:TIME %d",
+        """ An integer point property that controls the generation time. 
+        How long it takes to transition from the starting frequency to the final frequency, 
+        from 1 us to 10 s.""",
+        validator=strict_range,
+        values=TIME,
+    )
+
+    sweep_state = Instrument.control(
+        "SOUR{ch}:SWeep:STATE?",
+        "SOUR{ch}:SWeep:STATE %s",
+        """Enables/disables generation of the sweep on the specified channel, 
+        for this to work we have to enable the output channel too""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 'ON', False: 'OFF'}
+    )
+
+    DIRECTION = ('NORMAL', 'UP_DOWN')
+    sweep_direction = Instrument.control(
+        "SOUR{ch}:SWeep:DIR?",
+        "SOUR{ch}:SWeep:DIR %s",
+        """A string property that controls the direction of the sweep. Can be set to:
+        NORMAl (up) or UP_DOWN """,
+        validator=strict_discrete_set,
+        values=DIRECTION,
+    )
+
+
+    # Burst mode
+    #Not working at the moment
+
+    BURST_MODES = ('CONTINUOUS', 'BURST')
+    burst_mode = Instrument.control(
+        "SOUR{ch}:BURS:STAT?",
+        "SOUR{ch}:BURS:STAT %s",
+        """ A string property that controls the generation mode. 
+        Can be set to: CONTINUOUS or BURST
+        Red Pitaya will generate R bursts with N signal periods.
+        P is the time between the start of one and the start of the next burst.""",
+        validator=strict_discrete_set,
+        values=BURST_MODES,
+    )
+
+    burst_initial_voltage = Instrument.control(
+        "SOUR{ch}:BURS:INITValue?",
+        "SOUR{ch}:BURS:INITValue %f",
+        """ A floating point property that controls the initial voltage value, 
+        from 0 V to 1V, that appears on the fast analog output once it is enabled 
+        but before the signal is generated.""",
+        validator=strict_range,
+        values=AMPLITUDES,
+    )
+
+    burst_last_voltage = Instrument.control(
+        "SOUR{ch}:BURS:LASTValue?",
+        "SOUR{ch}:BURS:LASTValue %f",
+        """ A floating point property that controls the end value of the 
+        generated burst signal, from 0 V to 1V.
+        The output will stay on this value until a new signal is generated.""",
+        validator=strict_range,
+        values=AMPLITUDES,
+    )
+
+    NUM = [1, 65536]
+    burst_num_cycles= Instrument.control(
+        "SOUR{ch}:BURS:NCYC?",
+        "SOUR{ch}:BURS:NCYC %d",
+        """ An integer point property that controls the number of cycles in one burst (N),
+        the number of generated waveforms in a burst.""",
+        validator=strict_range,
+        values=NUM,
+    )
+
+    burst_num_repetitions = Instrument.control(
+        "SOUR{ch}:BURS:NOR?",
+        "SOUR{ch}:BURS:NOR %d",
+        """ An integer point property that controls the number of repeated bursts (R),
+        (65536 == INF repetitions).""",
+        validator=strict_range,
+        values=NUM,
+    )
+
+    PERIOD = [1, 5e8] #in microseconds
+    burst_period = Instrument.control(
+        "SOUR{ch}:BURS:INT:PER?",
+        "SOUR{ch}:BURS:INT:PER %d",
+        """ An integer point property that controls the duration of a single burst (P). 
+        This specifies the time between the start of one and the start of the next burst. 
+        The bursts will always have at least 1 microsecond between them: 
+        If the period is shorter than the burst, the software will default to 1 us between bursts.""",
+        validator=strict_range,
+        values=PERIOD,
+    )
 
 
 class RedPitayaScpi(SCPIMixin, Instrument):
@@ -257,6 +409,8 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     TRIGGER_SOURCES = ('DISABLED', 'NOW', 'CH1_PE', 'CH1_NE', 'CH2_PE', 'CH2_NE',
                        'EXT_PE', 'EXT_NE', 'AWG_PE', 'AWG_NE')
+
+
     LV_MAX = 1
     HV_MAX = 20
     CLOCK = 125e6  # Hz
@@ -264,7 +418,7 @@ class RedPitayaScpi(SCPIMixin, Instrument):
 
     def __init__(self,
                  adapter=None,
-                 ip_address: str = '169.254.134.87', port: int = 5000, name="Redpitaya SCPI",
+                 ip_address: str = '10.42.0.78', port: int = 5000, name="Redpitaya SCPI",
                  read_termination='\r\n',
                  write_termination='\r\n',
                  **kwargs):
@@ -297,9 +451,9 @@ class RedPitayaScpi(SCPIMixin, Instrument):
                               """Control the time on board
                               time should be given as a datetime.time object""",
                               get_process=lambda _tstr:
-                              datetime.time(*[int(split) for split in _tstr]),
+                              datetime.time(*[int(split) for split in _tstr.split(':')]),
                               set_process=lambda _time:
-                              _time.strftime('%H,%M,%S'),
+                              _time.strftime('"%H:%M:%S"'),
                               )
 
     date = Instrument.control("SYST:DATE?",
@@ -307,8 +461,8 @@ class RedPitayaScpi(SCPIMixin, Instrument):
                               """Control the date on board
                               date should be given as a datetime.date object""",
                               get_process=lambda dstr:
-                              datetime.date(*[int(split) for split in dstr]),
-                              set_process=lambda date: date.strftime('%Y,%m,%d'),
+                              datetime.date(*[int(split) for split in dstr.split('-')]),
+                              set_process=lambda date: date.strftime('"%Y-%m-%d"'),
                               )
 
     board_name = Instrument.measurement("SYST:BRD:Name?",
@@ -323,6 +477,10 @@ class RedPitayaScpi(SCPIMixin, Instrument):
     def analog_reset(self):
         """ Reset the voltage of all analog channels """
         self.write("ANALOG:RST")
+
+    def output_reset(self):
+        """ Reset the Analog Output generation channels """
+        self.write("GEN:RST")
 
     # ACQUISITION SECTION
 
@@ -400,6 +558,12 @@ class RedPitayaScpi(SCPIMixin, Instrument):
         cast=int,
     )
 
+    acq_last_position = Instrument.measurement(
+        "ACQ:WPOS?",
+        """Get the current position of the write pointer, i.e the index of the most recent sample in the buffer""",
+        cast=int,
+    )
+
     acq_buffer_filled = Instrument.measurement(
         "ACQ:TRig:FILL?",
         """Get the status of the buffer(bool), if True the buffer is full""",
@@ -446,3 +610,18 @@ class RedPitayaScpi(SCPIMixin, Instrument):
         values=[-LV_MAX, LV_MAX],
         dynamic=True,
     )
+
+
+
+if __name__ == '__main__':
+    print("joy")
+    inst = RedPitayaScpi(ip_address='10.42.0.77')
+    inst.aout1.amplitude = 0.05
+    inst.aout1.shape="SINE"
+    inst.aout1.frequency=10e3
+    inst.aout1.enable = True
+    inst.aout1.gen_trigger_source = "INT"
+    inst.aout1.run()
+
+    print("done")
+    pass

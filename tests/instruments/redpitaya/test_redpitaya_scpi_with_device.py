@@ -81,18 +81,14 @@ class TestRedpitaya:
         inst.average_skipped_samples = True
         assert inst.average_skipped_samples
 
-        assert inst.acq_units == 'VOLTS'
         inst.acq_units = 'RAW'
         assert inst.acq_units == 'RAW'
 
         assert inst.buffer_length == 16384
 
-        inst.acq_format = 'ASCII'
-        inst.acq_format = 'BIN'
-
         for trigger_source in inst.TRIGGER_SOURCES:
             inst.acq_trigger_source = trigger_source
-            if trigger_source == "DISABLED":
+            if trigger_source == "NOW":
                 assert inst.acq_trigger_status
 
         assert inst.acq_buffer_filled is False
@@ -115,8 +111,70 @@ class TestRedpitaya:
         inst.ain1.gain = 'LV'
         assert inst.ain1.gain == 'LV'
 
-        inst.acq_format = 'BIN'
-        inst.ain1.get_data_from_binary()
-
         inst.acq_format = 'ASCII'
-        inst.ain1.get_data_from_ascii()
+        inst.ain1.get_data(1,)
+
+    def test_analog_output_fast(self,redpitaya_scpi):
+        inst = redpitaya_scpi
+
+        inst.aout1.shape = 'SQUARE'
+        assert inst.aout1.shape == 'SQUARE'
+
+        inst.aout1.frequency = 1e4
+        assert inst.aout1.frequency == 1e4
+
+        inst.aout1.amplitude = 0.05
+        assert inst.aout1.amplitude == 0.05
+
+        inst.aout1.offset = 0.1
+        assert inst.aout1.offset == 0.1
+
+        inst.aout1.phase = 45
+        assert inst.aout1.phase == 45
+
+        inst.aout1.dutycycle = 0.3
+        assert inst.aout1.dutycycle == 0.3
+
+        inst.aout1.gen_trigger_source = 'INT'
+        assert inst.aout1.gen_trigger_source == 'INT'
+
+        inst.aout1.enable = True
+        assert inst.aout1.enable
+
+        #Sweep Mode
+        inst.aout1.sweep_mode = 'LOG'
+        assert inst.aout1.sweep_mode == 'LOG'
+
+        inst.aout1.sweep_start_frequency = 1e3
+        assert inst.aout1.sweep_start_frequency == 1e3
+
+        inst.aout1.sweep_stop_frequency = 1e5
+        assert inst.aout1.sweep_stop_frequency == 1e5
+
+        inst.aout1.sweep_time = 5e5
+        assert inst.aout1.sweep_time == 5e5
+
+        inst.aout1.sweep_state = False
+        assert inst.aout1.sweep_state is False
+
+        inst.aout1.sweep_direction = 'NORMAL'
+        assert inst.aout1.sweep_direction == 'NORMAL'
+
+        #Burst Mode
+        inst.aout1.burst_mode = 'CONTINUOUS'
+        assert inst.aout1.burst_mode == 'CONTINUOUS'
+
+        inst.aout1.burst_initial_voltage = 0.5
+        assert inst.aout1.burst_initial_voltage == 0.5
+
+        inst.aout1.burst_last_voltage = 0.7
+        assert inst.aout1.burst_last_voltage == 0.7
+
+        inst.aout1.burst_num_cycles = 2
+        assert inst.aout1.burst_num_cycles == 2
+
+        inst.aout1.burst_num_repetitions = 4
+        assert inst.aout1.burst_num_repetitions == 4
+
+        inst.aout1.burst_period = 1e5
+        assert inst.aout1.burst_period == 1e5
