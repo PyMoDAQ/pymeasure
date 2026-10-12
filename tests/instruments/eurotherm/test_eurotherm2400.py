@@ -63,3 +63,11 @@ def test_segment_target_setpoint_setter():
         [(b'\x01\x10\xc1"\x00\x02\x04Cz\x00\x00\x19\xa6', b'\x01\x10\xc1"\x00\x02\xdc>')],
     ) as inst:
         inst.program_1.segment_1.target_setpoint = 250
+
+
+def test_remote_setpoint_enabled():
+    with expected_protocol(
+        Eurotherm2400,
+        [(b"\x01\x03\x01\x14\x00\x01\xc5\xf2", b"\x01\x03\x02\x00\x01y\x84")],
+    ) as inst:
+        assert inst.remote_setpoint_enabled is True

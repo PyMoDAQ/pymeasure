@@ -63,3 +63,11 @@ def test_run_program():
         [(b'\x01\x10\x009\x00\x01\x02\x00\x02"\xf8', b"\x01\x10\x009\x00\x01\xd1\xc4")],
     ) as inst:
         inst.run_program()
+
+
+def test_remote_setpoint_setter():
+    with expected_protocol(
+        Eurotherm2200,
+        [(b"\x01\x10\x804\x00\x02\x04C\x16\x00\x00d\xce", b"\x01\x10\x804\x00\x02)\xc6")],
+    ) as inst:
+        inst.remote_setpoint = 150

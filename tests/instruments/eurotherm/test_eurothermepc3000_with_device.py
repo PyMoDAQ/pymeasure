@@ -118,6 +118,12 @@ def test_setpoint_rate_limit_down(controller):
 
 
 @UNVERIFIED
+def test_remote_setpoint(controller):
+    """Only read: the remote setpoint replaces the local one once enabled."""
+    assert_plausible_temperature(controller.remote_setpoint)
+
+
+@UNVERIFIED
 def test_ramp_done(controller):
     assert controller.ramp_done in [False, True]
 

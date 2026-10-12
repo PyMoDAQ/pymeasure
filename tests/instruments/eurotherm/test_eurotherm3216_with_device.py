@@ -124,6 +124,7 @@ def test_program_status(controller):
 
 @UNVERIFIED
 def test_remote_setpoint(controller):
+    """Only read: the remote setpoint replaces the local one once enabled."""
     assert_plausible_temperature(controller.remote_setpoint)
 
 

@@ -24,7 +24,7 @@
 
 from pymeasure.instruments import AdapterType, Instrument
 
-from .eurotherm_base import EurothermBase, enum_control, time_control
+from .eurotherm_base import EurothermBase, enum_control, float_control, time_control
 
 OPERATING_MODES = {"auto": 0, "manual": 1}
 
@@ -54,6 +54,30 @@ class Eurotherm2200(EurothermBase):
         273,
         """Control the operating mode (str 'auto' or 'manual').""",
         values=OPERATING_MODES,
+    )
+
+    remote_setpoint = float_control(
+        26,
+        """Control the remote (communications) setpoint (float).
+
+        It is used if :attr:`remote_setpoint_enabled` is True. Unlike
+        :attr:`target_setpoint`, it is meant for frequently changing values.
+
+        .. warning::
+
+            The address is assumed to be the one of the 3200 series, which inherits the
+            2000 series addresses. It is not confirmed by the 2200 manuals, nor whether
+            it must be written periodically (every 5 s on the 3200 series).""",
+    )
+
+    remote_setpoint_enabled = enum_control(
+        276,
+        """Control whether the remote setpoint is used instead of the local one (bool).
+
+        .. warning::
+
+            The address is assumed to be the one of the 3200 series, not confirmed.""",
+        values={False: 0, True: 1},
     )
 
     dwell_time = time_control(

@@ -67,6 +67,16 @@ class EurothermEPC3000(EurothermBase):
         (float, 0 means no limit).""",
     )
 
+    remote_setpoint = float_control(
+        277,
+        """Control the remote setpoint (float).
+
+        Unlike :attr:`target_setpoint`, it is meant for frequently changing values. The
+        remote setpoint must be enabled on the controller (``Loop.1.Setpoint.RSP_En``) and
+        the loop put in remote auto mode. It must then be written at least every second,
+        otherwise an alarm trips and the loop falls back to local auto mode.""",
+    )
+
     ramp_done = Instrument.measurement(
         "I,1673",
         """Measure whether the setpoint ramp is done (bool).""",

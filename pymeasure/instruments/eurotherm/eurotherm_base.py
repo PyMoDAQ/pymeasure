@@ -277,7 +277,12 @@ class EurothermBase(Instrument):
 
     target_setpoint = float_control(
         2,
-        """Control the target setpoint (float).""",
+        """Control the target setpoint (float).
+
+        Writing it changes the active setpoint (SP1 or SP2), which is stored in
+        non-volatile memory with a limited number of write cycles (typically 100,000).
+        Do not write continuously changing values to it: use the setpoint rate limit, or
+        the remote (communications) setpoint of models which have one.""",
     )
 
     proportional_band = float_control(
@@ -319,7 +324,7 @@ class EurothermBase(Instrument):
         """Control the setpoint 1 (float).
 
         Do not write continuously changing values to it, as it is stored in
-        non-volatile memory. Use :attr:`target_setpoint` instead.""",
+        non-volatile memory with a limited number of write cycles (typically 100,000).""",
     )
 
     setpoint2 = float_control(
@@ -327,7 +332,7 @@ class EurothermBase(Instrument):
         """Control the setpoint 2 (float).
 
         Do not write continuously changing values to it, as it is stored in
-        non-volatile memory. Use :attr:`target_setpoint` instead.""",
+        non-volatile memory with a limited number of write cycles (typically 100,000).""",
     )
 
     setpoint_rate_limit = float_control(

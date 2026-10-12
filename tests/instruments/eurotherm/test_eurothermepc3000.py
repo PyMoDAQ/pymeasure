@@ -86,3 +86,13 @@ def test_unexpected_transaction():
         tcp=True,
     ) as inst, pytest.raises(ConnectionError, match="transaction"):
         _ = inst.ramp_done
+
+
+def test_remote_setpoint_setter():
+    with expected_protocol(
+        EurothermEPC3000,
+        [(b"\x00\x01\x00\x00\x00\x0b\x01\x10\x82*\x00\x02\x04C\x16\x00\x00",
+          b"\x00\x01\x00\x00\x00\x06\x01\x10\x82*\x00\x02")],
+        tcp=True,
+    ) as inst:
+        inst.remote_setpoint = 150

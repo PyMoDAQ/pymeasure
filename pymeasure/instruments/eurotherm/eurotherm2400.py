@@ -56,7 +56,7 @@ class Eurotherm2400Setpoint(OffsetChannel):
         """Control the setpoint value (float).
 
         Do not write continuously changing values to it, as it is stored in
-        non-volatile memory.""",
+        non-volatile memory with a limited number of write cycles (typically 100,000).""",
     )
 
 
@@ -209,6 +209,30 @@ class Eurotherm2400(EurothermBase):
         273,
         """Control the operating mode (str 'auto' or 'manual').""",
         values=OPERATING_MODES,
+    )
+
+    remote_setpoint = float_control(
+        26,
+        """Control the remote (communications) setpoint (float).
+
+        It is used if :attr:`remote_setpoint_enabled` is True. Unlike
+        :attr:`target_setpoint`, it is meant for frequently changing values.
+
+        .. warning::
+
+            The address is assumed to be the one of the 3200 series, which inherits the
+            2000 series addresses. It is not confirmed by the 2400 manuals, nor whether
+            it must be written periodically (every 5 s on the 3200 series).""",
+    )
+
+    remote_setpoint_enabled = enum_control(
+        276,
+        """Control whether the remote setpoint is used instead of the local one (bool).
+
+        .. warning::
+
+            The address is assumed to be the one of the 3200 series, not confirmed.""",
+        values={False: 0, True: 1},
     )
 
     current_program = int_control(

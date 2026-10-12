@@ -97,7 +97,7 @@ class Eurotherm3500Loop(OffsetChannel):
         """Control the setpoint 1 (float).
 
         Do not write continuously changing values to it, as it is stored in
-        non-volatile memory. Use :attr:`target_setpoint` instead.""",
+        non-volatile memory with a limited number of write cycles (typically 100,000).""",
     )
 
     setpoint2 = float_control(
@@ -105,7 +105,7 @@ class Eurotherm3500Loop(OffsetChannel):
         """Control the setpoint 2 (float).
 
         Do not write continuously changing values to it, as it is stored in
-        non-volatile memory. Use :attr:`target_setpoint` instead.""",
+        non-volatile memory with a limited number of write cycles (typically 100,000).""",
     )
 
     setpoint_rate_limit = float_control(
@@ -116,6 +116,19 @@ class Eurotherm3500Loop(OffsetChannel):
     output_rate_limit = float_control(
         37,
         """Control the output rate limit in percent per second (float, 0 means no limit).""",
+    )
+
+    alternative_setpoint = float_control(
+        485,
+        """Control the alternative (remote) setpoint of the loop (float).
+
+        It is used if the alternative setpoint is enabled on the controller (Alt SP En).
+
+        .. warning::
+
+            The loop 1 address follows the AERCO 3508 user guide, the loop 2 address is
+            inferred. Whether this setpoint is kept out of non-volatile memory and must be
+            refreshed periodically is not confirmed.""",
     )
 
     setpoint_rate_disabled = enum_control(

@@ -71,3 +71,11 @@ def test_instrument_type():
 def test_active_setpoint_invalid():
     with expected_protocol(Eurotherm3500, []) as inst, pytest.raises(ValueError):
         inst.loop_1.active_setpoint = 3
+
+
+def test_loop_2_alternative_setpoint():
+    with expected_protocol(
+        Eurotherm3500,
+        [(b"\x01\x03\x8b\xca\x00\x02\xcf\xd1", b"\x01\x03\x04C\x16\x80\x00o\xb3")],
+    ) as inst:
+        assert inst.loop_2.alternative_setpoint == 150.5

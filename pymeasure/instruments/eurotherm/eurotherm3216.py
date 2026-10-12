@@ -103,7 +103,10 @@ class Eurotherm3216(EurothermBase):
         26,
         """Control the remote (communications) setpoint (float).
 
-        It is used if :attr:`remote_setpoint_enabled` is True.""",
+        It is used if :attr:`remote_setpoint_enabled` is True. Unlike
+        :attr:`target_setpoint`, it is meant for frequently changing values. It must be
+        written at least every 5 s, otherwise the controller flags a remote setpoint
+        failure and falls back to SP1 or SP2.""",
     )
 
     calculated_error = Instrument.measurement(
@@ -113,7 +116,10 @@ class Eurotherm3216(EurothermBase):
 
     remote_setpoint_enabled = enum_control(
         276,
-        """Control whether the remote setpoint is used instead of the local one (bool).""",
+        """Control whether the remote setpoint is used instead of the local one (bool).
+
+        The address follows the nupylab driver, it is not confirmed by the Eurotherm
+        manuals.""",
         values={False: 0, True: 1},
     )
 

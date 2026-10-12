@@ -132,6 +132,7 @@ def test_loop_read(controller, loop):
     assert channel.active_setpoint in (1, 2)
     assert_plausible_temperature(channel.setpoint1)
     assert_plausible_temperature(channel.setpoint2)
+    assert_plausible_temperature(channel.alternative_setpoint)
 
 
 @UNVERIFIED
