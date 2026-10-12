@@ -24,6 +24,7 @@
 
 import logging
 import struct
+from typing import cast
 
 from pymeasure.instruments import AdapterType, Channel, Instrument
 from pymeasure.instruments.validators import strict_discrete_set
@@ -32,7 +33,7 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-def crc16(data: bytes) -> bytes:
+def crc16(data: bytes | bytearray) -> bytes:
     """Calculate the Modbus RTU CRC16 of `data`, returned low byte first."""
     crc = 0xFFFF
     for octet in data:
@@ -98,6 +99,11 @@ class OffsetChannel(Channel):
     Commands of children have the form ``"<kind>,<relative address>[,<value>]"``,
     the absolute address is obtained by adding :meth:`offset`.
     """
+
+    @property
+    def number(self) -> int:
+        """Get the channel number, i.e. its integer id."""
+        return cast(int, self.id)
 
     def offset(self) -> int:
         """Return the address offset of this channel."""

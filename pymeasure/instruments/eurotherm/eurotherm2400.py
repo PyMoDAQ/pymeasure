@@ -49,7 +49,7 @@ class Eurotherm2400Setpoint(OffsetChannel):
 
     def offset(self) -> int:
         """Return the address of this setpoint."""
-        return SETPOINT_ADDRESSES[self.id - 1]
+        return SETPOINT_ADDRESSES[self.number - 1]
 
     value = float_control(
         0,
@@ -77,7 +77,7 @@ class Eurotherm2400Segment(OffsetChannel):
 
     def offset(self) -> int:
         """Return the address offset of this segment within its program."""
-        return 8 * self.id
+        return 8 * self.number
 
     segment_type = enum_control(
         0,
@@ -130,7 +130,7 @@ class Eurotherm2400Program(OffsetChannel):
 
     def offset(self) -> int:
         """Return the address offset of this program."""
-        return 8192 + 136 * self.id
+        return 8192 + 136 * self.number
 
     holdback_type = enum_control(
         0,

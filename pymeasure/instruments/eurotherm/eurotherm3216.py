@@ -39,7 +39,7 @@ class Eurotherm3216Segment(OffsetChannel):
 
     def offset(self) -> int:
         """Return the address offset of this segment."""
-        return 1280 + 3 * (self.id - 1)
+        return 1280 + 3 * (self.number - 1)
 
     dwell = time_control(
         0,
