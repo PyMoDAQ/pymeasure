@@ -33,6 +33,7 @@ Changed
 
 Instruments
 -----------
+- Add Eurotherm 2200, 2400 and 3216 temperature controllers (Modbus RTU).
 - Fix Yokogawa AQ6370 :code:`authenticate_ethernet` to compare responses case-insensitively (older firmware such as the AQ6370B answers in lower case) and raise :code:`ConnectionError` instead of asserting.
 
 Version 0.16.0 (2026-05-20)
