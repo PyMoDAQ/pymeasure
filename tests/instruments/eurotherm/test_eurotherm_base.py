@@ -108,3 +108,11 @@ def test_wrong_address():
         [(b"\x01\x03\x00\x0f\x00\x01\xb4\t", b"\x02\x03")],
     ) as inst, pytest.raises(ConnectionError, match="unexpected address"):
         _ = inst.active_setpoint
+
+
+def test_proportional_band_setter():
+    with expected_protocol(
+        EurothermBase,
+        [(b"\x01\x10\x80\x0c\x00\x02\x04AH\x00\x00\x06\x16", b"\x01\x10\x80\x0c\x00\x02\xa8\x0b")],
+    ) as inst:
+        inst.proportional_band = 12.5

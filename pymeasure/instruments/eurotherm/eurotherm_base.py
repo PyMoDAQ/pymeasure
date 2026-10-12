@@ -132,7 +132,9 @@ class EurothermBase(Instrument):
     Without value, the parameter is read and :meth:`read` returns its value.
 
     The selection of parameters follows the drivers of the
-    `nupylab <https://github.com/hailegroup/nupylab>`__ project.
+    `nupylab <https://github.com/hailegroup/nupylab>`__ project, the PID parameters
+    follow the `adelaisbruel/pymodaq_plugins_eurotherm
+    <https://github.com/adelaisbruel/pymodaq_plugins_eurotherm>`__ plugin.
 
     :param adapter: The adapter or resource string, e.g. ``"ASRL3::INSTR"`` for a serial
         link or ``"TCPIP::192.168.1.10::502::SOCKET"`` for Modbus TCP.
@@ -276,6 +278,21 @@ class EurothermBase(Instrument):
     target_setpoint = float_control(
         2,
         """Control the target setpoint (float).""",
+    )
+
+    proportional_band = float_control(
+        6,
+        """Control the PID proportional band (float).""",
+    )
+
+    integral_time = float_control(
+        8,
+        """Control the PID integral time in s (float).""",
+    )
+
+    derivative_time = float_control(
+        9,
+        """Control the PID derivative time in s (float).""",
     )
 
     output_level = Instrument.measurement(
