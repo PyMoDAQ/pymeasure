@@ -13,4 +13,5 @@ This section contains specific documentation on the Eurotherm instruments that a
    eurotherm2200
    eurotherm2400
    eurotherm3216
+   eurotherm3500
    eurothermepc3000

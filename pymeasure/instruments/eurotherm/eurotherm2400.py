@@ -219,7 +219,15 @@ class Eurotherm2400(EurothermBase):
     program_status = enum_control(
         23,
         """Control the program status
-        (str 'reset', 'run', 'hold', 'holdback' or 'complete').""",
+        (str 'reset', 'run', 'hold', 'holdback' or 'complete').
+
+        .. warning::
+
+            These values follow the `nupylab <https://github.com/hailegroup/nupylab>`__
+            driver. The `lapkindm/eurotherm2000
+            <https://github.com/lapkindm/eurotherm2000>`__ driver uses other values
+            for the same register (0 reset, 1 run, 2 hold, 3 complete). Which mapping
+            the 2400 uses is not confirmed and has not been tested on hardware.""",
         values={"reset": 1, "run": 2, "hold": 4, "holdback": 8, "complete": 16},
     )
 
