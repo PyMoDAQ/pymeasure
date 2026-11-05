@@ -36,7 +36,7 @@
 #
 # Hardware verification record (one line per run):
 #   date | who | model, firmware | link (RTU or TCP) | tests unflagged
-#   -    | -   | -               | -                 | -
+#   2026-11-05 | Axel | EPC3000 | TCP 134.157.58.62 | 22/23
 
 import pytest
 from eurotherm_device_utils import (
@@ -62,22 +62,18 @@ def controller(connected_device_address):
     controller.adapter.close()
 
 
-@UNVERIFIED
 def test_process_value(controller):
     assert_plausible_temperature(controller.process_value)
 
 
-@UNVERIFIED
 def test_working_setpoint(controller):
     assert_plausible_temperature(controller.working_setpoint)
 
 
-@UNVERIFIED
 def test_output_level(controller):
     assert_plausible_output(controller.output_level)
 
 
-@UNVERIFIED
 def test_target_setpoint_rewrite(controller):
     """Write back the current target setpoint, which does not change anything."""
     setpoint = controller.target_setpoint
@@ -86,44 +82,37 @@ def test_target_setpoint_rewrite(controller):
     assert controller.target_setpoint == pytest.approx(setpoint)
 
 
-@UNVERIFIED
 @pytest.mark.parametrize("name", ["proportional_band", "integral_time", "derivative_time"])
 def test_pid(controller, name):
     old = getattr(controller, name)
     assert_changes_and_restores(controller, name, old + 1)
 
 
-@UNVERIFIED
 def test_active_setpoint(controller):
     assert controller.active_setpoint in (1, 2)
 
 
-@UNVERIFIED
 @pytest.mark.parametrize("name", ["setpoint1", "setpoint2"])
 def test_setpoint_read(controller, name):
     """Only read: these setpoints are stored in non-volatile memory."""
     assert_plausible_temperature(getattr(controller, name))
 
 
-@UNVERIFIED
 def test_setpoint_rate_limit(controller):
     old = controller.setpoint_rate_limit
     assert_changes_and_restores(controller, "setpoint_rate_limit", old + 1)
 
 
-@UNVERIFIED
 def test_setpoint_rate_limit_down(controller):
     old = controller.setpoint_rate_limit_down
     assert_changes_and_restores(controller, "setpoint_rate_limit_down", old + 1)
 
 
-@UNVERIFIED
 def test_remote_setpoint(controller):
     """Only read: the remote setpoint replaces the local one once enabled."""
     assert_plausible_temperature(controller.remote_setpoint)
 
 
-@UNVERIFIED
 def test_ramp_done(controller):
     assert controller.ramp_done in [False, True]
 
@@ -135,37 +124,30 @@ def test_ramp_units(controller):
     assert_changes_and_restores(controller, "ramp_units", new)
 
 
-@UNVERIFIED
 def test_setpoint_limits(controller):
     assert controller.setpoint_low_limit < controller.setpoint_high_limit
 
 
-@UNVERIFIED
 def test_operating_mode(controller):
     assert controller.operating_mode in ["auto", "manual"]
 
 
-@UNVERIFIED
 def test_integral_hold(controller):
     assert controller.integral_hold in [False, True]
 
 
-@UNVERIFIED
 def test_standby_enabled(controller):
     assert controller.standby_enabled in [False, True]
 
 
-@UNVERIFIED
 def test_execution_status(controller):
     assert controller.execution_status in ["working", "standby", "startup"]
 
 
-@UNVERIFIED
 def test_temperature_units(controller):
     assert controller.temperature_units in ["C", "F", "K"]
 
 
-@UNVERIFIED
 def test_input_status(controller):
     assert controller.input_status in [
         "good",
@@ -179,6 +161,5 @@ def test_input_status(controller):
     ]
 
 
-@UNVERIFIED
 def test_leak_current(controller):
     assert isinstance(controller.leak_current, float)
