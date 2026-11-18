@@ -36,7 +36,7 @@
 #
 # Hardware verification record (one line per run):
 #   date | who | model, firmware | link (RTU or TCP) | tests unflagged
-#   2026-11-05 | Axel | EPC3000 | TCP 134.157.58.62 | 22/23
+#   2026-11-05 | Awilson-cnrs | EPC3000, V5.01 | TCP 134.157.58.62 | 22/23
 
 import pytest
 from eurotherm_device_utils import (
@@ -163,3 +163,10 @@ def test_input_status(controller):
 
 def test_leak_current(controller):
     assert isinstance(controller.leak_current, float)
+
+
+def test_firmware_version(controller):
+    """Read the firmware version string from register 107."""
+    fw = controller.firmware_version
+    assert isinstance(fw, str)
+    assert len(fw) >= 4  # e.g. 'V5.01'
