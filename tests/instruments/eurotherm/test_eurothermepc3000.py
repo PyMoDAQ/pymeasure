@@ -139,3 +139,17 @@ def test_remote_setpoint_setter():
         tcp=True,
     ) as inst:
         inst.remote_setpoint = 150
+
+
+def test_default_baud_rate(monkeypatch):
+    received = {}
+
+    def fake_init(self, adapter, name, **kwargs):
+        received.update(kwargs)
+
+    monkeypatch.setattr("pymeasure.instruments.eurotherm.eurothermepc3000.EurothermBase.__init__",
+                        fake_init)
+    EurothermEPC3000("ASRL3::INSTR")
+    assert received["baud_rate"] == 19200
+    EurothermEPC3000("ASRL3::INSTR", baud_rate=9600)
+    assert received["baud_rate"] == 9600
