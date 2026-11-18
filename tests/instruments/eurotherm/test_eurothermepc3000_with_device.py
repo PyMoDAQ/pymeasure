@@ -28,8 +28,9 @@
 #       --device-address ASRL3::INSTR -rX
 #
 # Set EUROTHERM_ADDRESS (Modbus address, default 1) and EUROTHERM_BAUD_RATE if needed.
-# Run them on an idle controller: they read parameters, change a few settings (PID,
-# rate limits, units) and restore them, and never start a program or heat.
+# They never start a program and only rewrite the current setpoint, but they briefly change
+# PID parameters and the setpoint rate limit, which can disturb a loop that is regulating a
+# process. Run them on a bench or otherwise safe controller, not on one driving a live process.
 #
 # Every test is marked @UNVERIFIED until it passed on hardware. A test that passes is
 # reported as XPASS (listed by -rX): remove its @UNVERIFIED line and fill in the record.
@@ -54,12 +55,14 @@ from pymeasure.instruments.eurotherm import EurothermEPC3000
 def controller(connected_device_address):
     controller = EurothermEPC3000(connected_device_address, **connection_kwargs())
     try:
-        assert_plausible_temperature(controller.process_value)
-    except Exception as exc:  # noqa: BLE001
-        # Stop here, otherwise the failure would be hidden as XFAIL in every test.
-        pytest.exit(f"Cannot communicate with the controller: {exc!r}", returncode=1)
-    yield controller
-    controller.adapter.close()
+        try:
+            assert_plausible_temperature(controller.process_value)
+        except Exception as exc:  # noqa: BLE001
+            # Stop here, otherwise the failure would be hidden as XFAIL in every test.
+            pytest.exit(f"Cannot communicate with the controller: {exc!r}", returncode=1)
+        yield controller
+    finally:
+        controller.adapter.close()
 
 
 def test_process_value(controller):
