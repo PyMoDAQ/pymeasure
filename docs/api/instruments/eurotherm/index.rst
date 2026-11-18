@@ -1,0 +1,17 @@
+.. module:: pymeasure.instruments.eurotherm
+
+#########
+Eurotherm
+#########
+
+This section contains specific documentation on the Eurotherm instruments that are implemented. If you are interested in an instrument not included, please consider :doc:`adding the instrument </dev/adding_instruments/index>`.
+
+.. toctree::
+   :maxdepth: 2
+
+   eurotherm_base
+   eurotherm2200
+   eurotherm2400
+   eurotherm3216
+   eurotherm3500
+   eurothermepc3000
