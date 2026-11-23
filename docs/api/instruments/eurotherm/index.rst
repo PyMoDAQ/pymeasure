@@ -15,3 +15,4 @@ This section contains specific documentation on the Eurotherm instruments that a
    eurotherm3216
    eurotherm3500
    eurothermepc3000
+   eurothermnanodac

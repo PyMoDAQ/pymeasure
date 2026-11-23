@@ -27,3 +27,4 @@ from .eurotherm2400 import Eurotherm2400
 from .eurotherm3216 import Eurotherm3216
 from .eurotherm3500 import Eurotherm3500
 from .eurothermepc3000 import EurothermEPC3000
+from .eurothermnanodac import EurothermNanodac
